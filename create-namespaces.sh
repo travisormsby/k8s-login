@@ -18,7 +18,7 @@ EOF
 
 
 for i in $(seq -f '%02.f' $1 $2); do
-name=arcgis${i}
+name=kube${i}
 
 # create namespace
 kubectl create ns ${name}

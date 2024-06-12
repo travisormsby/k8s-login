@@ -8,7 +8,7 @@ kubectl config view --minify --flatten -o jsonpath="{.clusters[0].cluster.certif
 
 
 for i in $(seq -f '%02.f' $1 $2); do
-  name=arcgis${i}
+  name=kube${i}
   csrname=${name}-$(date +%s)
   openssl genrsa -out ${name}.key 2048
   openssl req -new -key ${name}.key -out ${name}.csr -subj "/CN=${name}/O=kube"
