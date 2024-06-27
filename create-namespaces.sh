@@ -40,6 +40,21 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 EOF
 
+# apply resource quota to namespace
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ${name}-resource-quota
+  namespace: ${name}
+spec:
+  hard:
+    limits.cpu: "130"
+    limits.memory: 200Gi
+    requests.cpu: "20"
+    requests.memory: 100Gi
+EOF
+
 # Assign the view-all ClusterRole
 cat <<EOF | kubectl apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
