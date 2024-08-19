@@ -1,5 +1,9 @@
 #! /bin/bash
 
+# Set cluster-level variables
+cluster=$(kubectl config view --minify -o jsonpath="{.contexts[0].context.cluster}")
+server=$(kubectl config view --minify -o jsonpath="{.clusters[0].cluster.server}")
+
 # create ClusterRole to see all resources and get Prometheus metrics
 cat <<EOF | kubectl apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
@@ -15,6 +19,9 @@ rules:
   resourceNames: ["prometheus-operated:9090"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 EOF
+
+# create certificate authority cert
+kubectl config view --minify --flatten -o jsonpath="{.clusters[0].cluster.certificate-authority-data}" | base64 --decode > ca_cert.pem
 
 
 for i in $(seq -f '%02.f' $1 $2); do
