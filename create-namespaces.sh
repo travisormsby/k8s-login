@@ -4,6 +4,10 @@
 cluster=$(kubectl config view --minify -o jsonpath="{.contexts[0].context.cluster}")
 server=$(kubectl config view --minify -o jsonpath="{.clusters[0].cluster.server}")
 
+# convert duration input arg from days to seconds
+duration=$((86400 * $3)) 
+
+
 # create ClusterRole to see all resources and get Prometheus metrics
 cat <<EOF | kubectl apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
@@ -23,7 +27,8 @@ EOF
 # create certificate authority cert
 kubectl config view --minify --flatten -o jsonpath="{.clusters[0].cluster.certificate-authority-data}" | base64 --decode > ca_cert.pem
 
-
+# For each namespace:
+# Generate a certificate signing request
 for i in $(seq -f '%02.f' $1 $2); do
 name=kube${i}
 csrname=${name}-$(date +%s)
@@ -82,7 +87,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 EOF
 
-# Create kubeconfig files for each namespace
+# Create kubeconfig files
 cat <<EOF | kubectl apply -f -
 apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
@@ -91,7 +96,7 @@ metadata:
 spec:
   request: $request
   signerName: kubernetes.io/kube-apiserver-client
-  expirationSeconds: 172800  # two days
+  expirationSeconds: $duration
   usages:
   - client auth
 EOF
